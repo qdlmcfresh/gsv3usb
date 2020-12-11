@@ -16,7 +16,8 @@ class ForceMeasurementConverterKG(MeasurementConverter):
 
     def convertValue(self, bytes):
         A = struct.unpack('>H', bytes[1:])[0]
-        return (A - 0x8000) * (self.F_n / self.S_n) * (self.u_e / 0x8000)
+        # return (A - 0x8000) * (self.F_n / self.S_n) * (self.u_e / 0x8000)
+        return self.F_n / self.S_n * ((A - 0x8000) / 0x8000) * self.u_e * 2
 
 
 class GSV3USB:
@@ -26,6 +27,37 @@ class GSV3USB:
         print(f'Using COM: {com_path}')
         self.sensor = serial.Serial(com_path, baudrate)
         self.converter = ForceMeasurementConverterKG(500, 2, 1.05)
+
+    def get_all(self, profile=0):
+        self.sensor.write(struct.pack('bb', 9, profile))
+
+    def save_all(self, profile=2):
+        self.sensor.write(struct.pack('bb', 10, profile))
+
+    def start_transmission(self):
+        self.sensor.write(b'\x23')
+
+    def stop_transmission(self):
+        self.sensor.write(b'\x24')
+
+    def set_zero(self):
+        self.sensor.write(b'\x0C')
+
+    def set_offset(self):
+        self.sensor.write(b'\x0E')
+
+    def set_bipolar(self):
+        self.sensor.write(b'\x14')
+
+    def set_bipolar(self):
+        self.sensor.write(b'\x15')
+
+    def get_serial_nr(self):
+        self.stop_transmission()
+        self.sensor.write(b'\x1F')
+        ret = self.sensor.read(8)
+        self.start_transmission()
+        return ret
 
     def set_mode(self, text=False, max=False, log=False, window=False):
         x = 0
@@ -39,6 +71,30 @@ class GSV3USB:
             x = x | 0b10000
         self.sensor.write(struct.pack('bb', 0x26, x))
 
+    def get_mode(self):
+        self.stop_transmission()
+        self.sensor.write(b'\x27')
+        ret = self.sensor.read(1)
+        self.start_transmission()
+        return ret
+
+    def get_firmware_version(self):
+        self.stop_transmission()
+        self.sensor.write(b'\x27')
+        ret = self.sensor.read(2)
+        self.start_transmission()
+        return ret
+
+    def get_special_mode(self):
+        self.stop_transmission()
+        self.sensor.write(b'\x89')
+        ret = self.sensor.read(2)
+        self.start_transmission()
+        return ret
+
+    def set_special_mode(self):
+        pass
+
     def read_value(self):
         read_val = self.sensor.read(3)
         return self.converter.convertValue(read_val)
@@ -51,7 +107,7 @@ class GSV3USB:
 
 
 def main():
-    dev = GSV3USB(11)
+    dev = GSV3USB(13)
     try:
         while True:
             print(dev.read_value())
