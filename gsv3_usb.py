@@ -49,7 +49,7 @@ class GSV3USB:
     def set_bipolar(self):
         self.sensor.write(b'\x14')
 
-    def set_bipolar(self):
+    def set_unipolar(self):
         self.sensor.write(b'\x15')
 
     def get_serial_nr(self):
