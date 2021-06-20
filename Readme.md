@@ -1,1 +1,1 @@
-# Serial connection to GSV 3 USB in 
+# Serial connection to GSV 3 USB in Python
