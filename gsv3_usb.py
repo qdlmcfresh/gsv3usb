@@ -14,8 +14,8 @@ class ForceMeasurementConverterKG(MeasurementConverter):
         self.S_n = S_n
         self.u_e = u_e
 
-    def convertValue(self, bytes):
-        A = struct.unpack('>H', bytes[1:])[0]
+    def convertValue(self, value):
+        A = struct.unpack('>H', value)[0]
         # return (A - 0x8000) * (self.F_n / self.S_n) * (self.u_e / 0x8000)
         return self.F_n / self.S_n * ((A - 0x8000) / 0x8000) * self.u_e * 2
 
@@ -96,7 +96,8 @@ class GSV3USB:
         pass
 
     def read_value(self):
-        read_val = self.sensor.read(3)
+        self.sensor.read_until(b'\xA5')
+        read_val = self.sensor.read(2)
         return self.converter.convertValue(read_val)
 
     def clear_maximum(self):
@@ -107,7 +108,7 @@ class GSV3USB:
 
 
 def main():
-    dev = GSV3USB(13)
+    dev = GSV3USB(10)
     try:
         while True:
             print(dev.read_value())
