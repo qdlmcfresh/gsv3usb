@@ -108,10 +108,13 @@ class GSV3USB:
 
 
 def main():
-    dev = GSV3USB(10)
+    dev = GSV3USB(0)
     try:
         while True:
-            print(dev.read_value())
+            vals = []
+            for x in range(100):
+                vals.append(dev.read_value())
+            print(max(vals))
     except KeyboardInterrupt:
         print("Exiting")
         return
